@@ -5,18 +5,13 @@ import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.database.Cursor;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Environment;
 import android.provider.MediaStore;
-import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.Spinner;
 import android.widget.Toast;
@@ -29,13 +24,6 @@ import androidx.appcompat.app.AppCompatActivity;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.Locale;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -43,6 +31,7 @@ public class MainActivity extends AppCompatActivity {
     private static int RESULT_LOAD_IMAGE_FROM_GALLERY = 2;
     ImageView photo;
     Spinner city;
+    String selectedCity;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -51,8 +40,6 @@ public class MainActivity extends AppCompatActivity {
         setViews();
         clickListener();
 
-        ArrayAdapter<String> cityAdapter = new ArrayAdapter<>(MainActivity.this,
-                android.R.layout.simple_spinner_dropdown_item);
 
     }
 
@@ -69,7 +56,10 @@ public class MainActivity extends AppCompatActivity {
         city.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-
+                if (position > 0) {
+                    selectedCity = parent.getItemAtPosition(position).toString();
+                    Toast.makeText(MainActivity.this, selectedCity, Toast.LENGTH_SHORT).show();
+                }
             }
 
             @Override
