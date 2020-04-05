@@ -12,8 +12,10 @@ import android.os.Bundle;
 import android.provider.MediaStore;
 import android.view.View;
 import android.widget.AdapterView;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.Spinner;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -24,14 +26,18 @@ import androidx.appcompat.app.AppCompatActivity;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.ByteArrayOutputStream;
+import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity {
 
     private static final int RESULT_LOAD_IMAGE_FROM_CAMERA = 1;
     private static int RESULT_LOAD_IMAGE_FROM_GALLERY = 2;
     ImageView photo;
+    TextView name, email, phoneNumber;
+    Button submit, showData;
     Spinner city;
-    String selectedCity;
+    String selectedCity = "";
+    ArrayList<RegisteredData> registeredDataArrayList = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -40,9 +46,7 @@ public class MainActivity extends AppCompatActivity {
         setViews();
         clickListener();
 
-
     }
-
 
     private void clickListener() {
         photo.setOnClickListener(new View.OnClickListener() {
@@ -58,7 +62,8 @@ public class MainActivity extends AppCompatActivity {
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 if (position > 0) {
                     selectedCity = parent.getItemAtPosition(position).toString();
-                    Toast.makeText(MainActivity.this, selectedCity, Toast.LENGTH_SHORT).show();
+                } else {
+                    selectedCity = "";
                 }
             }
 
@@ -67,11 +72,54 @@ public class MainActivity extends AppCompatActivity {
 
             }
         });
+
+        submit.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (checkNameNotExist() || checkEmailNotExist() || checkValidPhoneNumberNotExist() || checkCityNotExist()) {
+                    Toast.makeText(MainActivity.this, "Please Fill All valid Details", Toast.LENGTH_SHORT).show();
+                } else {
+                    registeredDataArrayList.add(new RegisteredData(name.getText().toString(), email.getText().toString(),
+                            phoneNumber.getText().toString(), selectedCity));
+                    Toast.makeText(MainActivity.this, "Registration Successful !!!", Toast.LENGTH_SHORT).show();
+                }
+
+            }
+        });
+        showData.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(MainActivity.this, RecordsActivity.class);
+                intent.putParcelableArrayListExtra("data", registeredDataArrayList);
+                startActivity(intent);
+            }
+        });
+    }
+
+    private boolean checkCityNotExist() {
+        return selectedCity.equalsIgnoreCase("");
+    }
+
+    private boolean checkEmailNotExist() {
+        return email.getText().toString().equalsIgnoreCase("");
+    }
+
+    private boolean checkNameNotExist() {
+        return name.getText().toString().equalsIgnoreCase("");
+    }
+
+    private boolean checkValidPhoneNumberNotExist() {
+        return phoneNumber.getText().toString().length() != 10;
     }
 
     private void setViews() {
         photo = findViewById(R.id.photo);
-        city = findViewById(R.id.spinner);
+        city = findViewById(R.id.city_spinner);
+        submit = findViewById(R.id.submit);
+        showData = findViewById(R.id.showData);
+        name = findViewById(R.id.name);
+        email = findViewById(R.id.email);
+        phoneNumber = findViewById(R.id.phoneNumber);
     }
 
     private void selectImage() {
@@ -162,7 +210,9 @@ public class MainActivity extends AppCompatActivity {
             ByteArrayOutputStream bytes = new ByteArrayOutputStream();
             bitmap.compress(Bitmap.CompressFormat.JPEG, 50, bytes);
             photo.setImageBitmap(bitmap);
-
+            String path = MediaStore.Images.Media.insertImage(this.getContentResolver(), bitmap, "Title", null);
+            Uri uri = Uri.parse(path);
+            photo.setTag(uri.toString());
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -175,6 +225,7 @@ public class MainActivity extends AppCompatActivity {
     private void setPictureFromGallery(@NotNull Intent data) {
         Uri selectedImage = data.getData();
         photo.setImageURI(selectedImage);
+        photo.setTag(selectedImage.toString());
     }
 
 }

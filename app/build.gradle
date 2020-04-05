@@ -35,7 +35,17 @@ dependencies {
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.2.0'
 }
 dependencies {
+    implementation "androidx.recyclerview:recyclerview:1.1.0"
+    // For control over item selection of both touch and mouse driven selection
+    implementation "androidx.recyclerview:recyclerview-selection:1.1.0-rc01"
+}
+dependencies {
     // Retrofit & OkHttp
     implementation 'com.squareup.retrofit:retrofit:1.9.0'
     implementation 'com.squareup.okhttp:okhttp:2.7.2'
+}
+
+dependencies {
+    implementation 'androidx.appcompat:appcompat:+'
+    implementation 'androidx.constraintlayout:constraintlayout:+'
 }
