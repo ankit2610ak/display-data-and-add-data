@@ -82,6 +82,7 @@ public class MainActivity extends AppCompatActivity {
                     registeredDataArrayList.add(new RegisteredData(name.getText().toString(), email.getText().toString(),
                             phoneNumber.getText().toString(), selectedCity));
                     Toast.makeText(MainActivity.this, "Registration Successful !!!", Toast.LENGTH_SHORT).show();
+                    clearForm();
                 }
 
             }
@@ -89,11 +90,23 @@ public class MainActivity extends AppCompatActivity {
         showData.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(MainActivity.this, RecordsActivity.class);
-                intent.putParcelableArrayListExtra("data", registeredDataArrayList);
-                startActivity(intent);
+                openAllRecords();
             }
         });
+    }
+
+    private void openAllRecords() {
+        Intent intent = new Intent(MainActivity.this, RecordsActivity.class);
+        intent.putParcelableArrayListExtra("data", registeredDataArrayList);
+        startActivity(intent);
+    }
+
+    private void clearForm() {
+        name.setText("");
+        email.setText("");
+        phoneNumber.setText("");
+        selectedCity = "";
+        city.setSelection(0);
     }
 
     private boolean checkCityNotExist() {
@@ -210,22 +223,15 @@ public class MainActivity extends AppCompatActivity {
             ByteArrayOutputStream bytes = new ByteArrayOutputStream();
             bitmap.compress(Bitmap.CompressFormat.JPEG, 50, bytes);
             photo.setImageBitmap(bitmap);
-            String path = MediaStore.Images.Media.insertImage(this.getContentResolver(), bitmap, "Title", null);
-            Uri uri = Uri.parse(path);
-            photo.setTag(uri.toString());
+
         } catch (Exception e) {
             e.printStackTrace();
         }
-
-       /* Uri selectedImage = data.getData();
-        photo.setImageURI(selectedImage);*/
-
     }
 
     private void setPictureFromGallery(@NotNull Intent data) {
         Uri selectedImage = data.getData();
         photo.setImageURI(selectedImage);
-        photo.setTag(selectedImage.toString());
     }
 
 }
