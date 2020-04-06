@@ -2,9 +2,14 @@
     <string name="app_name">Registration with server</string>
 
     <string name="states_prompt">Choose a state</string>
+    <string name="name">Name</string>
+    <string name="email">Email</string>
+    <string name="phone_no">Phone No.</string>
+    <string name="submit">Submit</string>
+    <string name="show_data">Show Data</string>
 
     <string-array name="state_arrays">
-        <item>Choose a state</item>
+        <item><font color="#3246a8">Choose a state</font></item>
         <item>Andra Pradesh</item>
         <item>Arunachal Pradesh</item>
         <item>Assam</item>
