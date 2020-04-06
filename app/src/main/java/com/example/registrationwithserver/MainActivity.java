@@ -50,9 +50,14 @@ public class MainActivity extends AppCompatActivity {
 
     private void clickListener() {
         photo.setOnClickListener(new View.OnClickListener() {
+            @RequiresApi(api = Build.VERSION_CODES.M)
             @Override
             public void onClick(View v) {
-                selectImage();
+                if (!checkPermissionGrantedForReadExternalStorage()) {
+                    requestPermissions(new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, 1000);
+                } else {
+                    selectImage();
+                }
 
             }
         });
@@ -93,6 +98,23 @@ public class MainActivity extends AppCompatActivity {
                 openAllRecords();
             }
         });
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        if (requestCode == 1000) {
+            if (checkPermissionGrantedForReadExternalStorage()) {
+                selectImage();
+            }
+
+        }
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+    }
+
+
+    private boolean checkPermissionGrantedForReadExternalStorage() {
+        return Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE)
+                == PackageManager.PERMISSION_GRANTED;
     }
 
     private void openAllRecords() {
@@ -167,13 +189,8 @@ public class MainActivity extends AppCompatActivity {
 
     @RequiresApi(api = Build.VERSION_CODES.M)
     private void takePictureFromGallery(DialogInterface dialog) {
-        if (!checkPermissionGrantedForReadExternalStorage()) {
-            requestPermissions(new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, 1000);
-
-        } else {
-            dialog.dismiss();
+        dialog.dismiss();
             openGallery();
-        }
     }
 
     private void openGallery() {
@@ -181,22 +198,6 @@ public class MainActivity extends AppCompatActivity {
         startActivityForResult(pickPhoto, RESULT_LOAD_IMAGE_FROM_GALLERY);
     }
 
-
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        if (requestCode == 1000) {
-            if (checkPermissionGrantedForReadExternalStorage()) {
-                openGallery();
-            }
-
-        }
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-    }
-
-    private boolean checkPermissionGrantedForReadExternalStorage() {
-        return Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE)
-                == PackageManager.PERMISSION_GRANTED;
-    }
 
     private void takePictureFromCamera(DialogInterface dialog) {
         dialog.dismiss();
