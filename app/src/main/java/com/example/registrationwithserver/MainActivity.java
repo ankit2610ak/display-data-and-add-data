@@ -1,15 +1,20 @@
 package com.example.registrationwithserver;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.app.AlertDialog;
+import android.content.Context;
+import android.content.ContextWrapper;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
+import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.MediaStore;
+import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.Button;
@@ -26,17 +31,23 @@ import androidx.appcompat.app.AppCompatActivity;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity {
 
     private static final int RESULT_LOAD_IMAGE_FROM_CAMERA = 1;
     private static int RESULT_LOAD_IMAGE_FROM_GALLERY = 2;
+    String imageType = "";
     ImageView photo;
     TextView name, email, phoneNumber;
     Button submit, showData;
     Spinner city;
     String selectedCity = "";
+    String photoPathString = "";
     ArrayList<RegisteredData> registeredDataArrayList = new ArrayList<>();
 
     @Override
@@ -84,9 +95,7 @@ public class MainActivity extends AppCompatActivity {
                 if (checkNameNotExist() || checkEmailNotExist() || checkValidPhoneNumberNotExist() || checkCityNotExist()) {
                     Toast.makeText(MainActivity.this, "Please Fill All valid Details", Toast.LENGTH_SHORT).show();
                 } else {
-                    registeredDataArrayList.add(new RegisteredData(name.getText().toString(), email.getText().toString(),
-                            phoneNumber.getText().toString(), selectedCity));
-                    Toast.makeText(MainActivity.this, "Registration Successful !!!", Toast.LENGTH_SHORT).show();
+                    submitRecord();
                     clearForm();
                 }
 
@@ -100,13 +109,18 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
+    private void submitRecord() {
+        registeredDataArrayList.add(new RegisteredData(imageType, photoPathString, name.getText().toString(), email.getText().toString(),
+                phoneNumber.getText().toString(), selectedCity));
+        Toast.makeText(MainActivity.this, "Registration Successful !!!", Toast.LENGTH_SHORT).show();
+    }
+
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         if (requestCode == 1000) {
             if (checkPermissionGrantedForReadExternalStorage()) {
                 selectImage();
             }
-
         }
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
     }
@@ -129,6 +143,15 @@ public class MainActivity extends AppCompatActivity {
         phoneNumber.setText("");
         selectedCity = "";
         city.setSelection(0);
+        photoPathString = "";
+        imageType = "";
+        setDefaultPhoto();
+    }
+
+    private void setDefaultPhoto() {
+        int imageDefault = getResources().getIdentifier("@drawable/download", null, getPackageName());
+        Drawable res = getResources().getDrawable(imageDefault);
+        photo.setImageDrawable(res);
     }
 
     private boolean checkCityNotExist() {
@@ -211,7 +234,11 @@ public class MainActivity extends AppCompatActivity {
         super.onActivityResult(requestCode, resultCode, data);
 
         if (requestCode == RESULT_LOAD_IMAGE_FROM_GALLERY && resultCode == RESULT_OK && null != data) {
-            setPictureFromGallery(data);
+            try {
+                setPictureFromGallery(data);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
         if (requestCode == RESULT_LOAD_IMAGE_FROM_CAMERA && resultCode == RESULT_OK && null != data) {
             SetPictureByCamera(data);
@@ -224,15 +251,49 @@ public class MainActivity extends AppCompatActivity {
             ByteArrayOutputStream bytes = new ByteArrayOutputStream();
             bitmap.compress(Bitmap.CompressFormat.JPEG, 50, bytes);
             photo.setImageBitmap(bitmap);
+            photoPathString = saveToInternalStorage(bitmap);
+            imageType = "camera";
+            Log.d("MainActivity", saveToInternalStorage(bitmap));
 
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
-    private void setPictureFromGallery(@NotNull Intent data) {
+    private String saveToInternalStorage(Bitmap bitmapImage) {
+        ContextWrapper cw = new ContextWrapper(getApplicationContext());
+
+        // path to /data/data/yourapp/app_data/imageDir
+        @SuppressLint("SimpleDateFormat")
+        File directory = cw.getDir("imageDir" +
+                new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss").format(new java.util.Date()), Context.MODE_PRIVATE);
+
+        // Create imageDir
+        File mypath = new File(directory, "profile.jpg");
+
+        FileOutputStream fos = null;
+        try {
+            fos = new FileOutputStream(mypath);
+            // Use the compress method on the BitMap object to write image to the OutputStream
+            bitmapImage.compress(Bitmap.CompressFormat.PNG, 100, fos);
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                fos.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        return directory.getAbsolutePath();
+    }
+
+    private void setPictureFromGallery(@NotNull Intent data) throws IOException {
         Uri selectedImage = data.getData();
         photo.setImageURI(selectedImage);
+        photoPathString = selectedImage.toString();
+        imageType = "gallery";
     }
+
 
 }

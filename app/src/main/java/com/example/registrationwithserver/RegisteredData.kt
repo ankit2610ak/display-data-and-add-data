@@ -5,7 +5,8 @@ import kotlinx.android.parcel.Parcelize
 
 @Parcelize
 data class RegisteredData(
-//    var photoPath: String,
+    var imageType: String,
+    var photoPath: String,
     var name: String,
     var email: String,
     var phoneNumber: String,
