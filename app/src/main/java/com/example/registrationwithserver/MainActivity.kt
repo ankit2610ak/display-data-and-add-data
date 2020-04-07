@@ -1,7 +1,6 @@
 package com.example.registrationwithserver
 
-import android.Manifest
-import android.Manifest.*
+import android.Manifest.permission
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.app.AlertDialog
@@ -16,10 +15,13 @@ import android.os.Bundle
 import android.provider.MediaStore
 import android.util.Log
 import android.view.View
-import android.widget.*
+import android.widget.AdapterView
 import android.widget.AdapterView.OnItemSelectedListener
+import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
+import com.example.registrationwithserver.databinding.ActivityMainBinding
+import kotlinx.android.synthetic.main.activity_main.*
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.FileOutputStream
@@ -29,29 +31,23 @@ import java.util.*
 
 class MainActivity : AppCompatActivity() {
     var imageType = ""
-    var photo: ImageView? = null
-    var name: TextView? = null
-    var email: TextView? = null
-    var phoneNumber: TextView? = null
-    var submit: Button? = null
-    var showData: Button? = null
-    var city: Spinner? = null
     var selectedCity = ""
     var photoPathString = ""
-    var registeredDataArrayList =
-        ArrayList<RegisteredData>()
+    var registeredDataArrayList = ArrayList<RegisteredData>()
+    private lateinit var binding: ActivityMainBinding
 
     @RequiresApi(Build.VERSION_CODES.M)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
-        setViews()
+        binding = ActivityMainBinding.inflate(layoutInflater)
+        val view = binding.root
+        setContentView(view)
         clickListener()
     }
 
     @RequiresApi(Build.VERSION_CODES.M)
     private fun clickListener() {
-        photo!!.setOnClickListener {
+        binding.photo.setOnClickListener {
             if (!checkPermissionGrantedForReadExternalStorage()) {
                 requestPermissions(
                     arrayOf(permission.READ_EXTERNAL_STORAGE),
@@ -61,7 +57,7 @@ class MainActivity : AppCompatActivity() {
                 selectImage()
             }
         }
-        city!!.onItemSelectedListener = object : OnItemSelectedListener {
+        binding.citySpinner.onItemSelectedListener = object : OnItemSelectedListener {
             override fun onItemSelected(
                 parent: AdapterView<*>,
                 view: View,
@@ -77,7 +73,7 @@ class MainActivity : AppCompatActivity() {
 
             override fun onNothingSelected(parent: AdapterView<*>?) {}
         }
-        submit!!.setOnClickListener {
+        binding.submit.setOnClickListener {
             if (checkNameNotExist() || checkEmailNotExist() || checkValidPhoneNumberNotExist() || checkCityNotExist()) {
                 Toast.makeText(
                     this@MainActivity,
@@ -89,14 +85,18 @@ class MainActivity : AppCompatActivity() {
                 clearForm()
             }
         }
-        showData!!.setOnClickListener { openAllRecords() }
+        binding.showData.setOnClickListener { openAllRecords() }
     }
 
     private fun submitRecord() {
         registeredDataArrayList.add(
             RegisteredData(
-                imageType, photoPathString, name!!.text.toString(), email!!.text.toString(),
-                phoneNumber!!.text.toString(), selectedCity
+                imageType,
+                photoPathString,
+                binding.name.text.toString(),
+                binding.email.text.toString(),
+                binding.phoneNumber.text.toString(),
+                selectedCity
             )
         )
         Toast.makeText(this@MainActivity, "Registration Successful !!!", Toast.LENGTH_SHORT).show()
@@ -126,11 +126,11 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun clearForm() {
-        name!!.text = ""
-        email!!.text = ""
-        phoneNumber!!.text = ""
+        binding.name.text = null
+        binding.email.text = null
+        binding.phoneNumber.text = null
         selectedCity = ""
-        city!!.setSelection(0)
+        binding.citySpinner.setSelection(0)
         photoPathString = ""
         imageType = ""
         setDefaultPhoto()
@@ -148,25 +148,15 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun checkEmailNotExist(): Boolean {
-        return email!!.text.toString().equals("", ignoreCase = true)
+        return binding.email.text.toString().equals("", ignoreCase = true)
     }
 
     private fun checkNameNotExist(): Boolean {
-        return name!!.text.toString().equals("", ignoreCase = true)
+        return binding.name.text.toString().equals("", ignoreCase = true)
     }
 
     private fun checkValidPhoneNumberNotExist(): Boolean {
-        return phoneNumber!!.text.toString().length != 10
-    }
-
-    private fun setViews() {
-        photo = findViewById(R.id.photo)
-        city = findViewById(R.id.city_spinner)
-        submit = findViewById(R.id.submit)
-        showData = findViewById(R.id.showData)
-        name = findViewById(R.id.name)
-        email = findViewById(R.id.email)
-        phoneNumber = findViewById(R.id.phoneNumber)
+        return binding.phoneNumber.text.toString().length != 10
     }
 
     @RequiresApi(Build.VERSION_CODES.M)
@@ -228,16 +218,16 @@ class MainActivity : AppCompatActivity() {
             }
         }
         if (requestCode == RESULT_LOAD_IMAGE_FROM_CAMERA && resultCode == Activity.RESULT_OK && null != data) {
-            SetPictureByCamera(data)
+            setPictureByCamera(data)
         }
     }
 
-    private fun SetPictureByCamera(data: Intent) {
+    private fun setPictureByCamera(data: Intent) {
         try {
             val bitmap = data.extras!!["data"] as Bitmap?
             val bytes = ByteArrayOutputStream()
             bitmap!!.compress(Bitmap.CompressFormat.JPEG, 50, bytes)
-            photo!!.setImageBitmap(bitmap)
+            binding.photo.setImageBitmap(bitmap)
             photoPathString = saveToInternalStorage(bitmap)
             imageType = "camera"
             Log.d("MainActivity", saveToInternalStorage(bitmap))
@@ -278,7 +268,7 @@ class MainActivity : AppCompatActivity() {
     @Throws(IOException::class)
     private fun setPictureFromGallery(data: Intent) {
         val selectedImage = data.data
-        photo!!.setImageURI(selectedImage)
+        binding.photo.setImageURI(selectedImage)
         photoPathString = selectedImage.toString()
         imageType = "gallery"
     }
